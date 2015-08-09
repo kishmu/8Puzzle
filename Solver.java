@@ -41,7 +41,7 @@ public class Solver {  // Uses A* algorithm to solve 8Puzzle
             
             for (Board n : curr._board.neighbors()) {
                 // critical optimization
-                if (n.equals(curr._prev))
+                if (curr._prev != null && n.equals(curr._prev._board))
                     continue;
                 
                 pq.insert(new SearchNode(n, curr, curr._moves + 1));
@@ -49,7 +49,7 @@ public class Solver {  // Uses A* algorithm to solve 8Puzzle
             
             for (Board n : curr_tw._board.neighbors()) {
                 // critical optimization
-                if (n.equals(curr_tw._prev))
+                if (curr_tw._prev != null && n.equals(curr_tw._prev._board))
                     continue;
                 
                 pq_tw.insert(new SearchNode(n, curr_tw, curr_tw._moves + 1));
@@ -78,6 +78,7 @@ public class Solver {  // Uses A* algorithm to solve 8Puzzle
     
     // sequence of boards in a shortest solution; null if unsolvable
     public Iterable<Board> solution() {
+        if (!isSolvable()) return null;
         Stack<Board> solution = new Stack<Board>();
         SearchNode curr = _goal;
         while (curr != null) {

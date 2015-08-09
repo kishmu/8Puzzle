@@ -5,30 +5,14 @@ public class Board {
     
     private int N;
     private int[][] _tiles;
-    private int[]   _blank; // position of blank, 0-row and 1-col
-    private int _manhattan;
     
     // construct a board from an N-by-N array of tiles
     public Board(int[][] tiles) { 
-        N = tiles.length; 
-        _manhattan = 0;
-        
-        _blank = new int[2];
-        _blank[0] = _blank[1] = -1;
-        
+        N = tiles.length;  
         _tiles = new int[N][N];
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                int v = tiles[i][j];
-                _tiles[i][j] = v;
-                if (_blank[0] == -1 && v == 0) {
-                    _blank[0] = i; _blank[1] = j; // save blank row and col
-                }
-                if (v != 0) { // calculate manhattan priority
-                    int row_off = Math.abs((v - 1) / N - i);
-                    int col_off = Math.abs((v - 1) % N - j);
-                    _manhattan += row_off + col_off;
-                }
+                _tiles[i][j] = tiles[i][j];
             }
         }     
     }
@@ -53,21 +37,34 @@ public class Board {
     
     // sum of Manhattan distances between tiles and goal
     public int manhattan() {
-        return _manhattan;
+        int manhattan = 0;
+        
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                int v = _tiles[i][j];
+                if (v != 0) {
+                    int row_off = Math.abs((v - 1) / N - i);
+                    int col_off = Math.abs((v - 1) % N - j);
+                    manhattan += row_off + col_off;
+                }
+            }
+        }
+        
+        return manhattan;                
     }
     
     // is this board the goal board?
     public boolean isGoal() {
-        return (_manhattan == 0);
+        return (manhattan() == 0);
     }
     
     // a board that is obtained by exchanging two adjacent tiles in the same row
     public Board twin() {
         
         // pick a row with non zero block
-        int row = _blank[0];
-        row++;
-        if (row == N) row = 0;
+        int row = 0;
+        if (_tiles[row][0] == 0 || _tiles[row][1] == 0)
+            row++;
         
         Board tw = new Board(_tiles);
         exch(tw._tiles, row, 0, row, 1);
@@ -94,9 +91,17 @@ public class Board {
     // all neighboring boards
     public Iterable<Board> neighbors() {
         
-        int row = _blank[0];
-        int col = _blank[1];
-        
+        // find blank                
+        int row = -1;
+        int col = -1;
+        for (int i = 0; i < N; i++) {
+          for (int j = 0; j < N; j++) {
+              if (_tiles[i][j] == 0) {
+                  row = i; col = j;
+              }
+          }
+        }
+                             
         // swap neighbors
         Stack<Board> stack = new Stack<Board>();
         if (exch(_tiles, row-1, col, row, col)) {
